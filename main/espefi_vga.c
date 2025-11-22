@@ -12,7 +12,7 @@ static void display_init(int w, int h){
 		.hsync = 2,
         .disp_w = w,
         .disp_h = h,
-		.num_data_lines = 16,
+		.num_data_lines = 16, //BGR 565
 		.data_lines = {11, 12, 13, 14, 41, 16, 17, 18, 46, 9, 10, 4, 5, 6, 7, 15},
     };
     ESP_ERROR_CHECK(vga_disp_init(&conf, &display));

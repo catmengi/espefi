@@ -4,9 +4,11 @@
 #include <stdbool.h>
 #include <unistd.h>
 
+#include "driver/gpio.h"
 #include "driver/sdspi_host.h"
 #include "driver/spi_common.h"
 #include "espefi_api.h"
+#include "hal/gpio_types.h"
 #include "include/espefi_vga.h"
 #include "portmacro.h"
 #include "sd_protocol_types.h"
@@ -21,7 +23,7 @@
 
 #define SSFN_CONSOLEBITMAP_HICOLOR
 #define SSFN_CONSOLEBITMAP_CONTROL
-#define SDCARD_MOUNT_POINT "/sd"
+#define SDCARD_MOUNT_POINT ""
 
 extern void shell_loop();
 
@@ -46,8 +48,8 @@ void sdspi_init(){
 		
 		esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 	        .format_if_mount_failed = false,
-	        .max_files = 64,
-	        .allocation_unit_size = 64 * 1024
+	        .max_files = 256,
+	        .allocation_unit_size = 64 * 1024,
 	    };
 		if(esp_vfs_fat_sdspi_mount(mount_point, &mmc, &slot_config, &mount_config, &card) == ESP_OK){
 			sdmmc_card_print_info(stdout, card);
@@ -59,7 +61,6 @@ void app_main(void){
 	sdspi_init();
 	espefi_init();
 	shell_loop();
-
-	//assert(espefi_api->apploader.app_wait(espefi_api->apploader.app_load("/sd/elf.elf",2,(char*[]){"-iwad","/sd/doom2.wad"})) == 0);
+	//assert(espefi_api->apploader.app_wait(espefi_api->apploader.app_load("/doom",0,NULL) == 0));
 
 }

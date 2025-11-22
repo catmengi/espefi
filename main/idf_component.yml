@@ -17,3 +17,4 @@ dependencies:
   #   # All dependencies of `main` are public by default.
   #   public: true
   espressif/usb_host_hid: '*'
+  espressif/usb_host_msc: '*'

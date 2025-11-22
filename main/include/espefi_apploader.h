@@ -12,6 +12,7 @@
 #include "esp_elf.h"
 
 #define ENVIRON_MAX 1
+#define MAX_PATH 255 + 1
 
 typedef uint64_t espefi_app_id_t;
 typedef struct espefi_app{
@@ -28,6 +29,7 @@ typedef struct espefi_app{
     espefi_app_id_t id;
     
     TaskHandle_t app_task;
+    char cwd[MAX_PATH]; 
 
     //multi_heap_handle_t app_heap;
 }espefi_app_t;

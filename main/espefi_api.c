@@ -17,8 +17,9 @@
 /*INTERNAL IMPORTS*/
 extern void espefi_vga_init();
 extern void espefi_events_init();
-extern void espefi_usbhid_init();
+extern void espefi_usb_init();
 extern void espefi_console_init();
+extern void espefi_posix_init();
 extern void espefi_apploader_init();
 /*================*/
 
@@ -30,7 +31,8 @@ const espefi_api_t* const espefi_api = &espefi_mutable_api;
 void espefi_init(){
     espefi_events_init();
     espefi_vga_init();
-    espefi_usbhid_init();
+    espefi_usb_init();
     espefi_console_init();
+    espefi_posix_init();
     espefi_apploader_init();
 }

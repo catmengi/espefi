@@ -33,25 +33,6 @@ static const char *hid_proto_name_str[] = {
     "MOUSE"
 };
 
-static void usb_task(void* params_p){
-    const usb_host_config_t host_config = {
-        .skip_phy_setup = false,
-        .intr_flags = ESP_INTR_FLAG_LOWMED,
-    };
-
-    ESP_ERROR_CHECK(usb_host_install(&host_config));
-    xSemaphoreGive(params_p);
-
-    while(1){
-        uint32_t event_flags;
-        usb_host_lib_handle_events(portMAX_DELAY, &event_flags);
-
-        if (event_flags & USB_HOST_LIB_EVENT_FLAGS_NO_CLIENTS) {
-            usb_host_device_free_all();
-        }
-    }
-}
-
 static void espefi_events_task(void* params_p){
     hid_keyboard_input_report_boot_t report = {0};
     while(xQueueReceive(usbhid_queue, &report, portMAX_DELAY)){
@@ -150,17 +131,9 @@ static void hid_host_device_callback(hid_host_device_handle_t hid_device_handle,
 }
 
 extern void espefi_usbhid_init(){
-    StaticSemaphore_t sembuf;
-    SemaphoreHandle_t sem = xSemaphoreCreateBinaryStatic(&sembuf);
 
     usbhid_queue = xQueueCreateStatic(64, sizeof(hid_keyboard_input_report_boot_t), queue_storage, &queue_buf);
     usbhid_event_queue = xQueueCreate(128,sizeof(struct usbhid_event));
-
-    xTaskCreatePinnedToCore(usb_task,
-                                           "usb_events",
-                                           4096,
-                                           sem,
-                                           2, NULL, 1);
 
     xTaskCreatePinnedToCore(hid_host_event_task,"hid_events",4096,NULL,10,NULL,1);
     
@@ -170,8 +143,6 @@ extern void espefi_usbhid_init(){
                                            NULL,
                                            10, NULL, 1);
     
-
-    xSemaphoreTake(sem,portMAX_DELAY);
 
     const hid_host_driver_config_t hid_host_driver_config = {
         .create_background_task = true,

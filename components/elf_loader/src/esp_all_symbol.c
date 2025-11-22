@@ -12,6 +12,8 @@
 #include "espefi_apploader.h"
 #include "espefi_api.h"
 
+#include "ffi.h"
+
 
 /* Extern declarations from ELF symbol table */
 
@@ -30,10 +32,42 @@ static void elf_exit(int unused){
     elf_abort();
 }
 
+static FILE* fopen_intercept(const char* path, const char* mode){
+    return espefi_api->posix.fopen(path,mode);
+}
+static int open_intercept(const char* path, int mode){
+    return espefi_api->posix.open(path,mode);
+}
+static DIR* opendir_intercept(const char* path){
+    return espefi_api->posix.opendir(path);
+}
+static char* getcwd_intercept(char* buf, int buflen){
+    return espefi_api->posix.getcwd(buf,buflen);
+}
+static int chdir_intercept(const char* path){
+    return espefi_api->posix.chdir(path);
+}
+static int mkdir_intercept(const char* path,int mode){
+    return espefi_api->posix.mkdir(path,mode);
+}
+static int rename_intercept(const char* old, const char* new){
+    return espefi_api->posix.rename(old,new);
+}
+static int remove_intercept(const char* path){
+    return espefi_api->posix.remove(path);
+}
 
 const struct esp_elfsym g_customer_elfsyms[] = {
     {"abort",elf_abort},
     {"exit",elf_exit},
+    {"fopen",fopen_intercept},
+    {"open",open_intercept},
+    {"opendir",opendir_intercept},
+    {"getcwd",getcwd_intercept},
+    {"chdir",chdir_intercept},
+    {"rename",rename_intercept},
+    {"remove",remove_intercept},
+    {"mkdir",mkdir_intercept},
     ESP_ELFSYM_EXPORT(espefi_api),
 
     ESP_ELFSYM_END

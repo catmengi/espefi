@@ -1,11 +1,30 @@
 #include "espefi_api.h"
+
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+struct shell_cmdlet{
+    char* name;
+    void (*cmdlet)(int argc, char** argv);
+};
+
+static void cd_cmdlet(int argc, char** argv){
+}
+static void pwd_cmdlet(int argc, char** argv){
+}
+
+struct shell_cmdlet cmdlets[] = {
+    //{.name = "cd", cd_cmdlet},
+    //{.name = "pwd",.cmdlet = pwd_cmdlet},
+};
 
 extern void shell_loop(){
     char* argv[17] = {0};
     int argc_max = sizeof(argv) / sizeof(argv[0]);
 
     while(1){
+    loop_start:
         espefi_api->console.set_immediate();
         int argc_cur = 0;
         char inbuffer[512] = {0};
@@ -46,6 +65,15 @@ extern void shell_loop(){
             argv[argc_cur++] = cur;
         }
         if(argv[0]){
+            for(unsigned i = 0; i < sizeof(cmdlets) / sizeof(cmdlets[0]); i++){
+                if(strcmp(argv[0],cmdlets[i].name) == 0){
+                    if(cmdlets[i].name){
+                        cmdlets[i].cmdlet(argc_cur - 1, &argv[1]);
+                       }
+                    goto loop_start;
+                }
+            }
+
             espefi_api->console.set_buffered();
             printf("starting app %s\n",argv[0]);
             printf("app exited with: %d\n",espefi_api->apploader.app_wait(espefi_api->apploader.app_load(argv[0],argc_cur - 1, &argv[1])));

@@ -50,17 +50,17 @@ static espefi_app_t* get_app(espefi_app_id_t id){
 
 static espefi_app_t* new_app(const char* path){
     xSemaphoreTakeRecursive(loaded_apps.rmutex, portMAX_DELAY);
-    espefi_app_t* app = heap_caps_malloc(sizeof(*app) + strlen(path) + 1,MALLOC_CAP_SPIRAM);
+    espefi_app_t* app = heap_caps_calloc(1,sizeof(*app) + strlen(path) + 2,MALLOC_CAP_SPIRAM);
     if(app){
         INIT_LIST_HEAD(&app->list);
         app->rmutex = xSemaphoreCreateRecursiveMutexStatic(&app->rmutexbuf);
 
         esp_elf_init(&app->elf);
 
-        app->path = (char*)app + sizeof(*app);
+        app->path = (char*)app + sizeof(*app) + 1;
         arc4random_buf(&app->id,sizeof(app->id));
 
-        strcpy(app->path,path);
+        memcpy(app->path,path,strlen(path));
 
         list_add_tail(&app->list,&loaded_apps.apps_list);
     }
@@ -142,13 +142,16 @@ extern espefi_app_id_t espefi_apploader_load(const char* path, int argc, char* a
                         char* path_end = strrchr(app->path, '/') + 1;
                         char* environ_path = heap_caps_malloc(strlen("PATH=") + path_end - app->path + 1, MALLOC_CAP_SPIRAM);
 
-                        char path_cpy[path_end - app->path + 1];
-                        memset(path_cpy,0,path_end - app->path + 1);
-                        memcpy(path_cpy,app->path,path_end - app->path);
+                        int path_size = path_end - app->path;
+                        char path_cpy[path_size + 1];
+                        memset(path_cpy,0,path_size + 1);
 
+                        memcpy(path_cpy,app->path,path_size);
                         sprintf(environ_path,"PATH=%s",path_cpy);
+                        
                         app->app_environ[0] = environ_path;
                         app->app_environ[ENVIRON_MAX] = NULL;
+                        memcpy(app->cwd,path_cpy,path_size);
 
                         void* params[] = {app,(void*)argc,argv,proceed};
                         if(xTaskCreate(app_task,"app_task",4 * 1024 * sizeof(void*),params,10,&app->app_task) != pdPASS){

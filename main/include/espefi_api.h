@@ -5,6 +5,7 @@
 #include "espefi_apploader.h"
 #include "espefi_usbhid.h"
 #include "espefi_console.h"
+#include "espefi_posix.h"
 
 
 typedef struct{
@@ -12,6 +13,7 @@ typedef struct{
     espefi_events_api_t event;
     espefi_apploader_api_t apploader;
     espefi_console_api_t console;
+    espefi_posix_api posix;
 }espefi_api_t;
 
 extern const espefi_api_t* const espefi_api;
